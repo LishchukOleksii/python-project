@@ -134,24 +134,6 @@ plt.grid()
 plt.savefig("plot1_pm25_vs_life_expectancy.png")
 plt.show()
 
-# Plot 2 pm vs death and cities are labeleed
-plot_df_2=analysis_df[["pm25_mean","cvd_deaths","population","city_clean"]].dropna().copy()
-x2=plot_df_2["pm25_mean"]
-y2=plot_df_2["cvd_deaths"]
-r2=pearson_r(x2,y2)
-sizes2=np.sqrt(plot_df_2["population"])/np.sqrt(plot_df_2["population"]).max()*1000+30
-plt.figure()
-plt.scatter(x2,y2,s=sizes2,alpha=0.7,label="Cities")
-add_trendline(x2,y2)
-annotate_all_points(plot_df_2,"pm25_mean","cvd_deaths","city_clean")
-plt.title(f"Plot 2: PM2.5 vs Cardiovascular Disease Deaths (bubble size = population, r = {r2:.3f})")
-plt.xlabel("Average PM2.5 concentration in 2020")
-plt.ylabel("Cardiovascular disease deaths")
-plt.legend()
-plt.grid()
-plt.savefig("plot2_pm25_vs_cvd_deaths.png")
-plt.show()
-
 # Plot 3 no2 vs life
 plot_df_3=analysis_df[["no2_mean","life_expectancy","population","city_clean"]].dropna().copy()
 x3=plot_df_3["no2_mean"]
@@ -168,6 +150,41 @@ plt.ylabel("Life Expectancy")
 plt.legend()
 plt.grid()
 plt.savefig("plot3_no2_vs_life_expectancy.png")
+plt.show()
+
+# Plot 5 pm vs life
+plot_df_5=analysis_df[["pm10_mean","life_expectancy","population"]].dropna().copy()
+x5=plot_df_5["pm10_mean"]
+y5=plot_df_5["life_expectancy"]
+r5=pearson_r(x5,y5)
+sizes5=np.sqrt(plot_df_5["population"])/np.sqrt(plot_df_5["population"]).max()*1000+30
+plt.figure()
+plt.scatter(x5,y5,s=sizes5,alpha=0.7,label="Cities")
+add_trendline(x5,y5)
+plt.title(f"Plot 5: PM10 vs Life Expectancy (bubble size = population, r = {r5:.3f})")
+plt.xlabel("Average PM10 concentration in 2020")
+plt.ylabel("Life Expectancy")
+plt.legend()
+plt.grid()
+plt.savefig("plot5_pm10_vs_life_expectancy.png")
+plt.show()
+
+# Plot 2 pm vs death and cities are labeleed
+plot_df_2=analysis_df[["pm25_mean","cvd_deaths","population","city_clean"]].dropna().copy()
+x2=plot_df_2["pm25_mean"]
+y2=plot_df_2["cvd_deaths"]
+r2=pearson_r(x2,y2)
+sizes2=np.sqrt(plot_df_2["population"])/np.sqrt(plot_df_2["population"]).max()*1000+30
+plt.figure()
+plt.scatter(x2,y2,s=sizes2,alpha=0.7,label="Cities")
+add_trendline(x2,y2)
+annotate_all_points(plot_df_2,"pm25_mean","cvd_deaths","city_clean")
+plt.title(f"Plot 2: PM2.5 vs Cardiovascular Disease Deaths (bubble size = population, r = {r2:.3f})")
+plt.xlabel("Average PM2.5 concentration in 2020")
+plt.ylabel("Cardiovascular disease deaths")
+plt.legend()
+plt.grid()
+plt.savefig("plot2_pm25_vs_cvd_deaths.png")
 plt.show()
 
 
@@ -189,24 +206,6 @@ plt.grid()
 plt.savefig("plot4_log_population_vs_cvd_deaths.png")
 plt.show()
 
-# Plot 5 pm vs life
-plot_df_5=analysis_df[["pm10_mean","life_expectancy","population"]].dropna().copy()
-x5=plot_df_5["pm10_mean"]
-y5=plot_df_5["life_expectancy"]
-r5=pearson_r(x5,y5)
-sizes5=np.sqrt(plot_df_5["population"])/np.sqrt(plot_df_5["population"]).max()*1000+30
-plt.figure()
-plt.scatter(x5,y5,s=sizes5,alpha=0.7,label="Cities")
-add_trendline(x5,y5)
-plt.title(f"Plot 5: PM10 vs Life Expectancy (bubble size = population, r = {r5:.3f})")
-plt.xlabel("Average PM10 concentration in 2020")
-plt.ylabel("Life Expectancy")
-plt.legend()
-plt.grid()
-plt.savefig("plot5_pm10_vs_life_expectancy.png")
-plt.show()
-
-
 # Plt 6 life vs death i guess main plot
 # this scatter plot with this thing on the left I found it in the desctiption of a library i hope i used it correctly because i am doing it for the first time so i am not that sure in the correctness of the graphs 6 7 11 12
 plot_df_6=analysis_df[["life_expectancy","cvd_deaths","pm25_mean","population"]].dropna().copy()
@@ -226,24 +225,6 @@ plt.grid()
 plt.savefig("plot6_life_expectancy_vs_cvd_deaths_pm25.png")
 plt.show()
 
-# Plot 7 pm vs no2
-plot_df_7=analysis_df[["pm25_mean","no2_mean","life_expectancy","population"]].dropna().copy()
-x7=plot_df_7["pm25_mean"]
-y7=plot_df_7["no2_mean"]
-r7=pearson_r(x7,y7)
-sizes7=np.sqrt(plot_df_7["population"])/np.sqrt(plot_df_7["population"]).max()*1000+30
-plt.figure()
-scatter7=plt.scatter(x7,y7,s=sizes7,c=plot_df_7["life_expectancy"],alpha=0.75,label="Cities")
-plt.colorbar(scatter7,label="Life Expectancy")
-add_trendline(x7,y7)
-plt.title(f"Plot 7: PM2.5 vs NO2 (color = life expectancy, r = {r7:.3f})")
-plt.xlabel("Average PM2.5 concentration in 2020")
-plt.ylabel("Average NO2 concentration in 2020")
-plt.legend()
-plt.grid()
-plt.savefig("plot7_pm25_vs_no2_life_expectancy_color.png")
-plt.show()
-
 # Plot 8  i wanted to use the rural urban and suburban column
 plot_df_8=main_raw.copy()
 plot_df_8["station_group"]=plot_df_8["type_of_stations"].apply(station_group)
@@ -259,62 +240,6 @@ plt.xlabel("Station type")
 plt.ylabel("Average PM2.5 concentration")
 plt.grid(axis="y")
 plt.savefig("plot8_pm25_by_station_type.png")
-plt.show()
-
-
-# Plot 9  main plot with 10 life vs contamination
-plot_df_9=analysis_df[["pm25_mean","life_expectancy"]].dropna().copy()
-plot_df_9["pm25_group"]=pd.qcut(plot_df_9["pm25_mean"],q=3,labels=["Low PM2.5","Medium PM2.5","High PM2.5"])
-life_by_pm25=summarize_with_ci(plot_df_9,group_col="pm25_group",value_col="life_expectancy",order=["Low PM2.5","Medium PM2.5","High PM2.5"])
-plt.figure()
-bars9=plt.bar(life_by_pm25["pm25_group"],life_by_pm25["mean"],yerr=life_by_pm25["ci95"],capsize=6,alpha=0.8)
-for bar,n in zip(bars9,life_by_pm25["count"]):
-    plt.text(bar.get_x()+bar.get_width()/2,bar.get_height()+0.03,f"n={int(n)}",ha="center",va="bottom")
-plt.title("Plot 9: Average Life Expectancy by PM2.5 Group (merged cities, 95% CI)")
-plt.xlabel("PM2.5 group")
-plt.ylabel("Average life expectancy")
-plt.grid(axis="y")
-plt.savefig("plot9_life_expectancy_by_pm25_group.png")
-plt.show()
-
-# Plot 10 maybe main plot pm vs death
-plot_df_10=analysis_df[["pm25_mean","cvd_deaths"]].dropna().copy()
-plot_df_10["pm25_group"]=pd.qcut(plot_df_10["pm25_mean"],q=3,labels=["Low PM2.5","Medium PM2.5","High PM2.5"])
-cvd_by_pm25=summarize_with_ci(plot_df_10,group_col="pm25_group",value_col="cvd_deaths",order=["Low PM2.5","Medium PM2.5","High PM2.5"])
-plt.figure()
-bars10=plt.bar(cvd_by_pm25["pm25_group"],cvd_by_pm25["mean"],yerr=cvd_by_pm25["ci95"],capsize=6,alpha=0.8)
-for bar,n in zip(bars10,cvd_by_pm25["count"]):
-    plt.text(bar.get_x()+bar.get_width()/2,bar.get_height()+0.2,f"n={int(n)}",ha="center",va="bottom")
-plt.title("Plot 10: Average Cardiovascular Disease Deaths by PM2.5 Group (merged cities, 95% CI)")
-plt.xlabel("PM2.5 group")
-plt.ylabel("Average cardiovascular disease deaths")
-plt.grid(axis="y")
-plt.savefig("plot10_cvd_by_pm25_group.png")
-plt.show()
-# Plot 11 geography of pm2.5 contamination, i propose adding a map of world and i guess we can than compare with plot 12
-plot_df_11=analysis_df[["longitude","latitude","population","pm25_mean"]].dropna().copy()
-sizes11=np.sqrt(plot_df_11["population"])/np.sqrt(plot_df_11["population"]).max()*1200+30
-plt.figure()
-scatter11=plt.scatter(plot_df_11["longitude"],plot_df_11["latitude"],s=sizes11,c=plot_df_11["pm25_mean"],alpha=0.75)
-plt.colorbar(scatter11,label="Average PM2.5 concentration")
-plt.title("Plot 11: Geographic Distribution of Merged Cities (size = population, color = PM2.5)")
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
-plt.grid()
-plt.savefig("plot11_geo_population_pm25.png")
-plt.show()
-
-# Plot 12 just geography maybe then on the slide we can show the map with latitude and longtitude or something
-plot_df_12=analysis_df[["longitude","latitude","cvd_deaths","life_expectancy"]].dropna().copy()
-sizes12=np.sqrt(plot_df_12["cvd_deaths"])/np.sqrt(plot_df_12["cvd_deaths"]).max()*1200+30
-plt.figure()
-scatter12=plt.scatter(plot_df_12["longitude"],plot_df_12["latitude"],s=sizes12,c=plot_df_12["life_expectancy"],alpha=0.75)
-plt.colorbar(scatter12,label="Life Expectancy")
-plt.title("Plot 12: Geographic Health Pattern of Merged Cities (size = CVD deaths, color = life expectancy)")
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
-plt.grid()
-plt.savefig("plot12_geo_cvd_life_expectancy.png")
 plt.show()
 
 # Plot 13 combined pollution index vs life expectancy  so we can compare then with 14th
@@ -337,6 +262,7 @@ plt.legend()
 plt.grid()
 plt.savefig("plot13_pollution_index_vs_life_expectancy.png")
 plt.show()
+
 # Plot 14 combined pollution index vs cardiovascular disease death
 plot_df_14=analysis_df[["pm25_mean","pm10_mean","no2_mean","cvd_deaths","population"]].dropna().copy()
 plot_df_14["pm25_z"]=zscore_series(plot_df_14["pm25_mean"])

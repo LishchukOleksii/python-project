@@ -116,6 +116,7 @@ correlation_matrix=analysis_df[merged_cols].corr()
 print("\nCorrelation matrix for analysis_df:")
 print(correlation_matrix)
 
+plt.rcParams['figure.facecolor'] = 'white'
 # Plot 1 cpm vs life
 plot_df_1=analysis_df[["pm25_mean","life_expectancy","population","city_clean"]].dropna().copy()
 x1=plot_df_1["pm25_mean"]
@@ -214,7 +215,7 @@ sizes6=np.sqrt(plot_df_6["population"])/np.sqrt(plot_df_6["population"]).max()*1
 plt.figure()
 plt.scatter(x6,y6,s=sizes6,alpha=0.7,label="Cities")
 add_trendline(x6,y6)
-annotate_all_points(plot_df_6,"no2_mean","cvd_deaths","city_clean")
+annotate_all_points(plot_df_6,"pm10_mean","cvd_deaths","city_clean")
 plt.title(f"Plot 6: PM10 vs Cardiovascular Disease Deaths (bubble size = population, r = {r6:.3f})")
 plt.xlabel("Average PM10 concentration in 2020")
 plt.ylabel("Cardiovascular disease deaths")
@@ -265,7 +266,7 @@ plt.grid()
 plt.savefig("plot8_pollution_index_vs_cvd_deaths.png")
 plt.show()
 
-# Plot 9
+# Plot 9 PM 2.5 by Station Type
 plot_df_9=main_raw.copy()
 plot_df_9["station_group"]=plot_df_9["type_of_stations"].apply(station_group)
 plot_df_9=plot_df_9[plot_df_9["station_group"].isin(["Urban","Suburban","Rural"])].copy()
@@ -282,6 +283,39 @@ plt.grid(axis="y")
 plt.savefig("plot9_pm25_by_station_type.png")
 plt.show()
 
+# Plot 10 NO2 by Station Type
+plot_df_10=main_raw.copy()
+plot_df_10["station_group"]=plot_df_10["type_of_stations"].apply(station_group)
+plot_df_10=plot_df_10[plot_df_10["station_group"].isin(["Urban","Suburban","Rural"])].copy()
+plot_df_10=plot_df_10[["station_group","no2_concentration"]].dropna()
+station_pm25=summarize_with_ci(plot_df_10,group_col="station_group",value_col="no2_concentration",order=["Urban","Suburban","Rural"])
+plt.figure()
+bars10=plt.bar(station_pm25["station_group"],station_pm25["mean"],yerr=station_pm25["ci95"],capsize=6,alpha=0.8)
+for bar,n in zip(bars10,station_pm25["count"]):
+    plt.text(bar.get_x()+bar.get_width()/2,bar.get_height()+0.2,f"n={int(n)}",ha="center",va="bottom")
+plt.title("Plot 10: Average NO2 by Station Type (all air-quality data, 95% CI)")
+plt.xlabel("Station type")
+plt.ylabel("Average NO2 concentration")
+plt.grid(axis="y")
+plt.savefig("plot10_NO2_by_station_type.png")
+plt.show()
+
+# Plot 11 PM10 by Station Type
+plot_df_11=main_raw.copy()
+plot_df_11["station_group"]=plot_df_11["type_of_stations"].apply(station_group)
+plot_df_11=plot_df_11[plot_df_11["station_group"].isin(["Urban","Suburban","Rural"])].copy()
+plot_df_11=plot_df_11[["station_group","pm10_concentration"]].dropna()
+station_pm25=summarize_with_ci(plot_df_11,group_col="station_group",value_col="pm10_concentration",order=["Urban","Suburban","Rural"])
+plt.figure()
+bars11=plt.bar(station_pm25["station_group"],station_pm25["mean"],yerr=station_pm25["ci95"],capsize=6,alpha=0.8)
+for bar,n in zip(bars11,station_pm25["count"]):
+    plt.text(bar.get_x()+bar.get_width()/2,bar.get_height()+0.2,f"n={int(n)}",ha="center",va="bottom")
+plt.title("Plot 11: Average PM10 by Station Type (all air-quality data, 95% CI)")
+plt.xlabel("Station type")
+plt.ylabel("Average PM10 concentration")
+plt.grid(axis="y")
+plt.savefig("plot11_pm10_by_station_type.png")
+plt.show()
 
 print("\nMain correlations (merged dataset focus):")
 print(f"PM2.5 vs Life Expectancy: {r1:.3f}")

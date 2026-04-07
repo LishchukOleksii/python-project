@@ -3,20 +3,24 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import stats
+
 MAIN_FILE="main.xlsx"
 ADDITIONAL_FILE="additional.csv"
 SHEET_NAME="Update 2024 (V6.1)"
-def clean_main_city_name(city_name): # it is used to clean the NY or LA because for some unknown for me reason this isiot dataset writes New York NY and other just New York like why do they include this NY for what i guess just to make it harder for me to do this
+
+def clean_main_city_name(city_name): #Cleans inconsistent naming
     if pd.isna(city_name):
         return np.nan
     city_name=str(city_name)
     city_name=city_name.split("/")[0]
     city_name=re.sub(r"\s+[A-Z]{2}$","",city_name)
     return city_name.strip()
-def annotate_all_points(df,x_col,y_col,label_col): # to anontate cities on first plots
+
+def annotate_all_points(df,x_col,y_col,label_col): #Annotate city names on plots
     for i,row in df.iterrows():
         plt.annotate(row[label_col],(row[x_col],row[y_col]),fontsize=8)
-def station_group(station_type): # for clarity of these freaking regions i officially hate that column and plot with it i hate it
+
+def station_group(station_type): #Clean inconsistent station types
     if pd.isna(station_type):
         return np.nan
     station_type=str(station_type).lower()
@@ -27,9 +31,8 @@ def station_group(station_type): # for clarity of these freaking regions i offic
     if "rural" in station_type:
         return "Rural"
     return np.nan
-# here scipy is used because i dont remember that we used it during the course so we can get extra points
 
-def add_trendline(x,y):
+def add_trendline(x,y): #Add a trendline to plots
     x=pd.Series(x).astype(float)
     y=pd.Series(y).astype(float)
     valid=pd.concat([x,y],axis=1).dropna()
@@ -37,18 +40,22 @@ def add_trendline(x,y):
     x_line=np.linspace(valid.iloc[:,0].min(),valid.iloc[:,0].max(),200)
     y_line=slope*x_line+intercept
     plt.plot(x_line,y_line,color="red",label="Trendline")
-def pearson_r(x,y):
+
+def pearson_r(x,y): #Calculate Pearson correlation
     x=pd.Series(x).astype(float)
     y=pd.Series(y).astype(float)
     valid=pd.concat([x,y],axis=1).dropna()
     return stats.pearsonr(valid.iloc[:,0],valid.iloc[:,1])[0]
-def scipy_skew(series):
+
+def scipy_skew(series): #Returns unbiased estimator
     series=pd.Series(series).dropna()
     return stats.skew(series,bias=False)
-def zscore_series(series):
+
+def zscore_series(series): #Returns a z score series, for calculating the combined relative index
     series=pd.Series(series).astype(float)
     return pd.Series(stats.zscore(series,nan_policy="omit"),index=series.index)
-def summarize_with_ci(df,group_col,value_col,order):
+
+def summarize_with_ci(df,group_col,value_col,order): #Returns the confidence interval
     summary=df.groupby(group_col)[value_col].agg(["mean","std","count"]).reset_index()
     summary=summary[summary[group_col].isin(order)].copy()
     summary[group_col]=pd.Categorical(summary[group_col],categories=order,ordered=True)
@@ -56,67 +63,53 @@ def summarize_with_ci(df,group_col,value_col,order):
     summary["sem"]=summary["std"]/np.sqrt(summary["count"])
     summary["ci95"]=summary.apply(lambda row:stats.t.ppf(0.975,row["count"]-1)*row["sem"],axis=1)
     return summary
-# cleaning and merging
 
-
+#Reading
 main_raw=pd.read_excel(MAIN_FILE,sheet_name=SHEET_NAME)
 additional_raw=pd.read_csv(ADDITIONAL_FILE)
+
+#Clean main dataset
 main_us_2020=main_raw[(main_raw["country_name"]=="United States of America")&(main_raw["year"]==2020)].copy()
 main_us_2020["city_clean"]=main_us_2020["city"].apply(clean_main_city_name)
+
 city_air=main_us_2020.groupby("city_clean")[["pm25_concentration","pm10_concentration","no2_concentration","population","latitude","longitude"]].mean().reset_index()
 city_air=city_air.rename(columns={"pm25_concentration":"pm25_mean","pm10_concentration":"pm10_mean","no2_concentration":"no2_mean"})
+
 station_info=main_us_2020.groupby("city_clean")["type_of_stations"].first().reset_index()
 city_air=city_air.merge(station_info,on="city_clean",how="left")
 city_air["station_group"]=city_air["type_of_stations"].apply(station_group)
+
+#Clean additional dataset
 health_total=additional_raw[(additional_raw["geo_level"]=="city")&(additional_raw["group_name"]=="Total")].copy()
+
 health_total=health_total[["geo_name","metric_name","est"]]
 health_total=health_total.drop_duplicates(subset=["geo_name","metric_name"])
+
 health_city=health_total.pivot(index="geo_name",columns="metric_name",values="est").reset_index()
 health_city.columns.name=None
+
 health_city=health_city.rename(columns={"geo_name":"city_clean","Cardiovascular Disease Deaths":"cvd_deaths","Life Expectancy - City-Level":"life_expectancy"})
+
+#Merge
 merged=city_air.merge(health_city,on="city_clean",how="inner")
 analysis_df=merged.copy()
-# statistics(i asked AI and even it doesnt know what else we can include i gues i included everything)
-print("MAIN RAW DATASET SHAPE:")
-print(main_raw.shape)
-print("\nMAIN US 2020 DATASET SHAPE:")
-print(main_us_2020.shape)
-print("\nCITY AIR DATASET SHAPE:")
-print(city_air.shape)
-print("\nHEALTH TOTAL DATASET SHAPE:")
-print(health_total.shape)
-print("\nHEALTH CITY DATASET SHAPE:")
-print(health_city.shape)
-print("\nMERGED DATASET SHAPE:")
-print(merged.shape)
-print("\nFINAL ANALYSIS DATASET SHAPE:")
-print(analysis_df.shape)
+
+#Statistics
 city_air_cols=["pm25_mean","pm10_mean","no2_mean","population","latitude","longitude"]
 health_cols=["life_expectancy","cvd_deaths"]
 merged_cols=["pm25_mean","pm10_mean","no2_mean","population","latitude","longitude","life_expectancy","cvd_deaths"]
-city_air_stats=pd.DataFrame({"mean":city_air[city_air_cols].mean(),"std":city_air[city_air_cols].std(),"min":city_air[city_air_cols].min(),"max":city_air[city_air_cols].max(),"skew":city_air[city_air_cols].apply(scipy_skew)})
-print("\nSummary statistics for city_air:")
-print(city_air_stats)
-health_city_stats=pd.DataFrame({"mean":health_city[health_cols].mean(),"std":health_city[health_cols].std(),"min":health_city[health_cols].min(),"max":health_city[health_cols].max(),"skew":health_city[health_cols].apply(scipy_skew)})
-print("\nSummary statistics for health_city:")
-print(health_city_stats)
-merged_stats=pd.DataFrame({"mean":merged[merged_cols].mean(),"std":merged[merged_cols].std(),"min":merged[merged_cols].min(),"max":merged[merged_cols].max(),"skew":merged[merged_cols].apply(scipy_skew)})
-print("\nSummary statistics for merged:")
-print(merged_stats)
+
 analysis_stats=pd.DataFrame({"mean":analysis_df[merged_cols].mean(),"std":analysis_df[merged_cols].std(),"min":analysis_df[merged_cols].min(),"max":analysis_df[merged_cols].max(),"skew":analysis_df[merged_cols].apply(scipy_skew)})
+
 print("\nSummary statistics for analysis_df:")
 print(analysis_stats)
-print("\nCorrelation matrix for city_air:")
-print(city_air[city_air_cols].corr())
-print("\nCorrelation matrix for health_city:")
-print(health_city[health_cols].corr())
-print("\nCorrelation matrix for merged:")
-print(merged[merged_cols].corr())
 correlation_matrix=analysis_df[merged_cols].corr()
 print("\nCorrelation matrix for analysis_df:")
 print(correlation_matrix)
 
-plt.rcParams['figure.facecolor'] = 'white'
+#Uncomment this to render the plots in lightmode
+#plt.rcParams['figure.facecolor'] = 'white'
+
 # Plot 1 cpm vs life
 plot_df_1=analysis_df[["pm25_mean","life_expectancy","population","city_clean"]].dropna().copy()
 x1=plot_df_1["pm25_mean"]
@@ -317,18 +310,19 @@ plt.grid(axis="y")
 plt.savefig("plot11_pm10_by_station_type.png")
 plt.show()
 
-print("\nMain correlations (merged dataset focus):")
+#Plot Summary
+print("\nMain correlations:")
 print(f"PM2.5 vs Life Expectancy: {r1:.3f}")
-print(f"PM2.5 vs CVD Deaths: {r2:.3f}")
-print(f"NO2 vs Life Expectancy: {r3:.3f}")
-print(f"log10(Population) vs CVD Deaths: {r4:.3f}")
-print(f"PM10 vs Life Expectancy: {r5:.3f}")
-print(f"Life Expectancy vs CVD Deaths: {r6:.3f}")
-print(f"PM2.5 vs NO2: {r7:.3f}")
-print(f"Combined Pollution Index vs Life Expectancy: {r13:.3f}")
-print(f"Combined Pollution Index vs CVD Deaths: {r14:.3f}")
+print(f"NO2 vs Life Expectancy: {r2:.3f}")
+print(f"PM10 vs Life Expectancy: {r3:.3f}")
+print(f"PM2.5 vs CVD Deaths: {r4:.3f}")
+print(f"NO2 vs CVD Deaths: {r5:.3f}")
+print(f"PM10 vs CVD Deaths: {r6:.3f}")
+print(f"Combined Relative Pollution Index vs Life Expectancy: {r7:.3f}")
+print(f"Combined Relative Pollution Index vs Life CVD Deaths: {r8:.3f}")
+
 print(f"Matched cities in merged dataset: {analysis_df['city_clean'].nunique()}")
 print("\nStation type counts in merged US dataset from original 2020 field:")
 print(analysis_df["station_group"].value_counts(dropna=False))
-print("\nStation type counts used in plot 8:")
+print("\nStation type counts used in plot 9, 10, and 11:")
 print(station_pm25[["station_group","count"]])
